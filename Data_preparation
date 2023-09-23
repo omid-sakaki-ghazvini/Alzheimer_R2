@@ -1,0 +1,45 @@
+alz_dict = {index: img for index, img in enumerate(data.class_names)}
+
+class Process:
+    def __init__(self, data):
+        self.data = data.map(lambda x, y: (x/255, y))
+
+    def create_new_batch(self):
+        self.batch = self.data.as_numpy_iterator().next()
+        text = "Min and max pixel values in the batch ->"
+        print(text, self.batch[0].min(), "&", self.batch[0].max())
+
+    def show_batch_images(self, number_of_images=5):
+        fig, ax = plt.subplots(ncols=number_of_images, figsize=(10,10), facecolor="gray")
+        fig.suptitle("Alzheimer_s Dataset Samples in the Batch", color="yellow",fontsize=18, fontweight='bold', y=0.6)
+        for idx, img in enumerate(self.batch[0][:number_of_images]):
+            ax[idx].imshow(img)
+            class_no = self.batch[1][idx]
+            ax[idx].set_title(alz_dict[class_no], color="aqua")
+            ax[idx].set_xticklabels([])
+            ax[idx].set_yticklabels([])
+
+    def train_test_val_split(self, train_size, val_size, test_size):
+
+        train = int(len(self.data)*train_size)
+        test = int(len(self.data)*test_size)
+        val = int(len(self.data)*val_size)
+
+        train_data = self.data.take(train)
+        val_data = self.data.skip(train).take(val)
+        #val_data = val_data.shuffle
+        test_data = self.data.skip(train+val).take(test)
+        #test_data = test_data.shuffle
+
+        return train_data, val_data, test_data
+
+process = Process(data)
+process.create_new_batch()
+process.show_batch_images(number_of_images=4)
+
+train_data, val_data, test_data= process.train_test_val_split(train_size=0.8, val_size=0.1, test_size=0.1)
+
+y_train = tf.concat(list(map(lambda x: x[1], train_data)), axis=0)
+class_weight = compute_class_weight('balanced',classes=np.unique(y_train), y=y_train.numpy())
+class_weights = dict(zip(np.unique(y_train), class_weight))
+
