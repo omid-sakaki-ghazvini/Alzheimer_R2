@@ -1,0 +1,76 @@
+train_datagen = ImageDataGenerator(
+    rescale = 1./255,
+    validation_split = 0.2,
+    rotation_range=5,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    vertical_flip=True,
+    fill_mode='nearest')
+
+valid_datagen = ImageDataGenerator(
+    rescale = 1./255,
+    rotation_range=5,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    vertical_flip=True,
+    validation_split = 0.2)
+
+test_datagen  = ImageDataGenerator(rescale = 1./255)
+
+train_dataset  = train_datagen.flow_from_directory(directory = 'your path/Alzheimer_s Dataset/train',
+                                                   target_size = (45,45),
+                                                   class_mode = 'categorical',
+                                                   subset = 'training',
+                                                   batch_size = 32)
+
+valid_dataset = valid_datagen.flow_from_directory(directory = 'your path/Alzheimer_s Dataset/train',
+                                                  target_size = (45,45),
+                                                  class_mode = 'categorical',
+                                                  subset = 'validation',
+                                                  batch_size = 32)
+
+test_dataset = test_datagen.flow_from_directory(directory = 'your path/Alzheimer_s Dataset/test',
+                                                  target_size = (45,45),
+                                                  class_mode = 'categorical',
+                                                  batch_size = 32)
+
+METRICS = ['accuracy',tf.keras.metrics.AUC(),tf.keras.metrics.Precision(),tf.keras.metrics.Recall()]
+
+earlystopping = EarlyStopping(monitor = 'val_accuracy', mode = 'max' ,patience = 15,verbose = 1)
+
+PATH = 'your path'
+data = tf.keras.utils.image_dataset_from_directory(PATH,
+                                                batch_size = 10,
+                                                image_size=(45, 45),
+                                                shuffle=True)
+
+class_names = data.class_names
+
+def sample_bringer(path, target, num_samples=4):
+
+    class_path = os.path.join(path, target)
+
+    image_files = [image for image in os.listdir(class_path) if image.endswith('.jpg')]
+
+    fig, ax = plt.subplots(1, num_samples, facecolor="gray")
+    fig.suptitle(f'{target} Samples', color="yellow",fontsize=16, fontweight='bold', y=0.75)
+
+    for i in range(num_samples):
+        image_path = os.path.join(class_path, image_files[i])
+        img = mpimg.imread(image_path)
+
+        ax[i].imshow(img)
+        ax[i].axis('off')
+        ax[i].set_title(f'Sample {i+1}', color="aqua")
+
+    plt.tight_layout()
+
+for target in class_names:
+    sample_bringer(PATH, target=target)
+
