@@ -1,0 +1,59 @@
+def build_model():
+    model = Sequential()
+
+    model.add(Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), activation="relu", kernel_initializer='he_normal', input_shape=(45, 45, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1), activation="relu", kernel_initializer='he_normal'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1), activation="relu", kernel_initializer='he_normal'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))
+
+    model.add(Flatten())
+
+    model.add(Dense(256, activation="relu", kernel_initializer='he_normal'))
+    model.add(Dense(128, activation="relu"))
+    model.add(Dense(64, activation="relu"))
+    model.add(Dense(4, activation="softmax"))
+
+    model.compile(optimizer='adam', loss="categorical_crossentropy", metrics=METRICS)
+
+    model.summary()
+
+    return model
+
+CNN_model = build_model()
+
+history_CNN=CNN_model.fit(train_dataset, epochs=100, validation_data=valid_dataset, callbacks = earlystopping, verbose=1)
+
+def Train_Val_Plot(acc,val_acc,loss,val_loss):
+
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize= (8,5))
+    fig.suptitle(" MODEL'S METRICS VISUALIZATION ")
+
+    ax1.plot(range(1, len(acc) + 1), acc)
+    ax1.plot(range(1, len(val_acc) + 1), val_acc)
+    ax1.set_title('History of Accuracy')
+    ax1.set_xlabel('Epochs')
+    ax1.set_ylabel('Accuracy')
+    ax1.legend(['training', 'validation'])
+
+
+    ax2.plot(range(1, len(loss) + 1), loss)
+    ax2.plot(range(1, len(val_loss) + 1), val_loss)
+    ax2.set_title('History of Loss')
+    ax2.set_xlabel('Epochs')
+    ax2.set_ylabel('Loss')
+    ax2.legend(['training', 'validation'])
+
+
+
+    plt.show()
+
+
+Train_Val_Plot(history_CNN.history['accuracy'], history_CNN.history['val_accuracy'],
+               history_CNN.history['loss'], history_CNN.history['val_loss']
+              )
